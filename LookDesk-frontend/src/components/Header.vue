@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, nextTick, onBeforeUnmount } from 'vue'
+import { ref, onMounted, nextTick, onBeforeUnmount, watch } from 'vue'
 
 const isChatOpen = ref(false)
 
@@ -10,6 +10,14 @@ const closeChat = () => {
 const onOverlayClick = () => {
   isChatOpen.value = false
 }
+
+watch(isChatOpen, (value) => {
+  if (value) {
+    document.body.style.overflow = 'hidden'
+  } else {
+    document.body.style.overflow = ''
+  }
+})
 
 const updateLineForLink = (link) => {
   if (!link) return
@@ -131,12 +139,6 @@ const toggleModal = () => {
               </div>
             </div>
             <div class="massage-left">
-              <div class="message__inner">
-                <p>Torem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vulputate libero et velit interdum, ac aliquet odio mattis.</p>
-                <span>10:30</span>
-              </div>
-            </div>
-            <div class="massage-right">
               <div class="message__inner">
                 <p>Torem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vulputate libero et velit interdum, ac aliquet odio mattis.</p>
                 <span>10:30</span>

@@ -666,7 +666,9 @@
     padding-left: 44px;
     font-size: 13px;
     outline: none;
-    color: #111;
+    color: var(--dark-gray);
+    font-family: "inter-regular", sans-serif;
+    font-weight: 400;
   }
 
   .ai-assist-btn {
@@ -2597,5 +2599,9 @@
   }
   .message__inner p {
     margin-bottom: 0px;
+  }
+  .sidebar__links {
+    display: flex;
+    flex-direction: column;
   }
 }

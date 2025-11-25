@@ -11,31 +11,19 @@ const activeModal = ref(null);
 
 const toggleAllModal = () => {
   isAllModalOpen.value = !isAllModalOpen.value;
-
-  if (isAllModalOpen.value) {
     isAiModalOpen.value = false;
     isChatOpen.value = false;
-    document.body.style.overflow = "hidden";
-  } else {
-    document.body.style.overflow = "";
-  }
 };
 
 const toggleAiModal = () => {
   isAiModalOpen.value = !isAiModalOpen.value;
+  isAllModalOpen.value = false;
+  isChatOpen.value = false;
 
-  if (isAiModalOpen.value) {
-    isAllModalOpen.value = false;
-    isChatOpen.value = false;
-    document.body.style.overflow = "hidden";
-  } else {
-    document.body.style.overflow = "";
-  }
 };
 
 const toggleCalendar = () => {
   activeModal.value = activeModal.value === "calendar" ? null : "calendar";
-  document.body.style.overflow = activeModal.value ? "hidden" : "";
 };
 
 const closeModals = () => {
@@ -60,15 +48,10 @@ const closeChat = () => {
   document.querySelector('header')?.classList.remove('active');
 };
 
-if (isAiModalOpen.value || isAllModalOpen.value || isChatOpen.value) {
-  document.body.style.overflow = "hidden";
-} else {
-  document.body.style.overflow = "";
-}
-
 const onOverlayClick = () => {
   isChatOpen.value = false;
   document.querySelector('header')?.classList.remove('active');
+  document.body.style.overflow = "";
 };
 
 function handleClickOutside(e) {
