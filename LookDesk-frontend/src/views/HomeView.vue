@@ -8,8 +8,15 @@ import DashboardStats from "../components/DashboardStats.vue";
 import RecentSearches from "../components/RecentSearches.vue";
 import TeamMembers from "../components/TeamMembers.vue";
 import BillingSection from "../components/BillingSection.vue";
+import ChatAi from '../components/ChatAi.vue';
 
 const sidebarOpen = ref(false)
+const chatOpen = ref(false)
+
+function onRecentOpen() {
+  console.log('HomeView: received open -> set chatOpen true'); // debug
+  chatOpen.value = true
+}
 </script>
 
 <template>
@@ -23,6 +30,7 @@ const sidebarOpen = ref(false)
               <div class="main-info">
                 <Hero></Hero>
                 <DashboardStats class="no-display-1440" />
+                <ChatAi :open="chatOpen" @close="chatOpen = false"></ChatAi>
               </div>
               <div class="main-info-mobile">
                 <DashboardStats />
@@ -31,8 +39,8 @@ const sidebarOpen = ref(false)
                   <BillingSection />
                 </div>
               </div>
-              <div class="main-people">
-                <RecentSearches />
+              <div class="main-people" v-if="!chatOpen">
+                <RecentSearches @open="onRecentOpen" />
                 <div class="sidebars no-display-1440">
                   <TeamMembers />
                   <BillingSection />

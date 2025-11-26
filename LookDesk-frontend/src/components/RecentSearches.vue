@@ -96,6 +96,11 @@ function handleClickOutside(e) {
 onMounted(() => document.addEventListener("click", handleClickOutside));
 onBeforeUnmount(() => document.removeEventListener("click", handleClickOutside));
 
+const emit = defineEmits(["open"]);
+
+function openAiChat() {
+  emit("open");
+}
 
 const items = [
   {
@@ -313,7 +318,7 @@ const items = [
       </div>
   
       <div class="search-list">
-            <RecentItem v-for="item in items" :key="item.id" :item="item"/>
+            <RecentItem v-for="item in items" :key="item.id" :item="item" @open="openAiChat"/>
       </div>
 
     </div>

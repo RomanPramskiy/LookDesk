@@ -25,6 +25,9 @@ function toggleFavorite(e) {
   e.stopPropagation();
   isFavorite.value = !isFavorite.value;
 }
+
+
+const emit = defineEmits(["open"]);
 </script>
 
 <template>
@@ -71,7 +74,7 @@ function toggleFavorite(e) {
       
               <p class="ai-text">{{ item.aiAnswer }}</p>
       
-              <div class="ai-link"><a href="#">Open Chat Details</a></div>
+              <div class="ai-link"><button @click="emit('open')" href="#">Open Chat Details</button></div>
             </div>
         </div>
 
