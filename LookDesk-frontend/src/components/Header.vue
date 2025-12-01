@@ -3,13 +3,36 @@ import { ref, onMounted, nextTick, onBeforeUnmount, watch } from 'vue'
 
 const isChatOpen = ref(false)
 
+const checked = ref(false)
+const isNotificationsOpen = ref(false)
+
 const closeChat = () => {
   isChatOpen.value = false
 }
 
+
+const onLearnMore = () => {
+  isNotificationsOpen.value = false;
+  document.querySelector('header')?.classList.remove('active');
+  document.body.style.overflow = "";
+};
+
+
+
+
 const onOverlayClick = () => {
-  isChatOpen.value = false
-}
+  isNotificationsOpen.value = false;
+  document.querySelector('header')?.classList.remove('active');
+  document.body.style.overflow = "";
+};
+
+
+const openNotifications = () => {
+  isNotificationsOpen.value = !isNotificationsOpen.value;
+  document.body.style.overflow = "hidden";
+  document.querySelector('header')?.classList.add('active');
+};
+
 
 watch(isChatOpen, (value) => {
   if (value) {
@@ -75,19 +98,19 @@ const toggleModal = () => {
                     <a href="/">LookDesk.ai</a>
                 </div>
                 <nav class="header__nav" @mouseover="onNavMouseover" @mouseleave="onNavMouseleave">
-                    <a href="/" class="active">Dashboard</a>
-                    <a href="/">Documents</a>
-                    <a href="/">Users</a>
-                    <a href="/">Belings</a>
+                  <router-link to="/">Dashboard</router-link>
+                  <router-link to="/documents">Documents</router-link>
+                  <router-link to="/users">Users</router-link>
+                  <router-link to="/belings">Belings</router-link>
                 </nav>
                 <div class="header__actions">
                   <div class="header__language">
-                    <button @click="toggleModal"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9.99996 1.04187C5.05996 1.04187 1.04163 5.06104 1.04163 10.0002C1.04163 14.9394 5.05996 18.9585 9.99996 18.9585C14.94 18.9585 18.9583 14.9394 18.9583 10.0002C18.9583 5.06104 14.94 1.04187 9.99996 1.04187ZM17.6766 9.3752H14.3016C14.1924 7.08937 13.4891 4.76021 12.2725 2.63438C15.225 3.54771 17.4191 6.19187 17.6766 9.3752ZM10.6083 2.32269C12.0716 4.49853 12.9241 6.96687 13.0516 9.3752H6.9483C7.07497 6.96687 7.92828 4.49853 9.39162 2.32269C9.59328 2.30686 9.79496 2.29187 9.99996 2.29187C10.205 2.29187 10.4075 2.30686 10.6083 2.32269ZM7.72747 2.63438C6.5108 4.76021 5.80747 7.08937 5.6983 9.3752H2.32329C2.58079 6.19187 4.77497 3.54771 7.72747 2.63438ZM2.32329 10.6252H5.6983C5.80747 12.911 6.5108 15.2402 7.72747 17.366C4.77497 16.4527 2.58079 13.8085 2.32329 10.6252ZM9.39162 17.6777C7.92828 15.5019 7.0758 13.0335 6.9483 10.6252H13.0516C12.9249 13.0335 12.0716 15.5019 10.6083 17.6777C10.4066 17.6935 10.205 17.7085 9.99996 17.7085C9.79496 17.7085 9.59245 17.6935 9.39162 17.6777ZM12.2725 17.366C13.4891 15.2402 14.1924 12.911 14.3016 10.6252H17.6766C17.4191 13.8085 15.225 16.4527 12.2725 17.366Z" fill="#110E12"/></svg>
+                    <button @click="toggleModal">En
                     </button>
                     <div class="modal__language" v-show="isModalOpen">
                       <div class="modal__language__inner">
-                        <div class="modal__language-item active">En</div>
-                        <div class="modal__language-item">DE</div>
+                        <button class="modal__language-item active">En</button>
+                        <button class="modal__language-item">DE</button>
                       </div>
                     </div>
                   </div>
@@ -97,12 +120,54 @@ const toggleModal = () => {
                             <path d="M5.83329 11.5037C5.83329 11.1411 5.82311 10.8151 5.52988 10.5601C5.42323 10.4674 5.28183 10.403 4.99905 10.2741C4.62497 10.1038 4.43793 10.0186 4.25259 10.0036C3.69655 9.95864 3.39739 10.3381 3.07673 10.7276C2.29058 11.6824 1.89751 12.1598 1.75368 12.6863C1.63761 13.1111 1.63761 13.5555 1.75368 13.9803C1.96346 14.7482 2.62623 15.3918 3.1168 15.9876C3.42603 16.3632 3.72143 16.706 4.25259 16.663C4.43793 16.648 4.62497 16.5628 4.99905 16.3924C5.28183 16.2636 5.42323 16.1992 5.52988 16.1065C5.82311 15.8515 5.83329 15.5256 5.83329 15.1628V11.5037Z" stroke="#110E12" stroke-width="1.5"/>
                             <path d="M1.66663 13.3334V10.0001C1.66663 5.39771 5.39758 1.66675 9.99996 1.66675C14.6023 1.66675 18.3333 5.39771 18.3333 10.0001L18.3334 13.3334" stroke="#110E12" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
                     </button>
-                    <button><svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M15.8333 14.9998V7.91646C15.8333 4.69481 13.2216 2.08313 9.99996 2.08313C6.7783 2.08313 4.16663 4.69481 4.16663 7.91646V14.9998" stroke="#110E12" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M17.0833 15H2.91663" stroke="#110E12" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M11.25 16.6669C11.25 17.3572 10.6903 17.9169 10 17.9169M10 17.9169C9.30967 17.9169 8.75 17.3572 8.75 16.6669M10 17.9169V16.6669" stroke="#110E12" stroke-width="1.5" stroke-linejoin="round"/></svg>
-                            <div class="notifications__circle"></div>
-                    </button>
+                    <div class="notifications" @click.stop>
+                      <button @click="openNotifications"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <path d="M15.8333 14.9998V7.91646C15.8333 4.69481 13.2216 2.08313 9.99996 2.08313C6.7783 2.08313 4.16663 4.69481 4.16663 7.91646V14.9998" stroke="#110E12" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                              <path d="M17.0833 15H2.91663" stroke="#110E12" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                              <path d="M11.25 16.6669C11.25 17.3572 10.6903 17.9169 10 17.9169M10 17.9169C9.30967 17.9169 8.75 17.3572 8.75 16.6669M10 17.9169V16.6669" stroke="#110E12" stroke-width="1.5" stroke-linejoin="round"/></svg>
+                              <div class="notifications__circle"></div>
+                      </button>
+                      <div class="notifications-modal" @click.stop v-if="isNotificationsOpen" >
+                        <div class="notifications-modal__inner">
+                          <div class="notifications-modal__header">
+                            <h3>Notifications</h3>
+                            <div class="notifications-modal__checkbox">
+                              <span class="notifications-modal__checkbox-label">{{ checked ? 'On' : 'Off' }}</span>
+                              <label class="toggle">
+                                <input type="checkbox" v-model="checked"></input>
+                                <span class="toggle-slider"></span>
+                              </label>
+                            </div>
+                          </div>
+                          <div class="notifications-modal__box">
+                            <div class="notifications-modal__message">
+                              <h4>New document added</h4>
+                              <p>Qorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+                              <span>2025-11-09, 08:24</span>
+                            </div>
+                            <div class="notifications-modal__message">
+                              <h4>Document updated</h4>
+                              <p>Qorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+                              <span>2025-11-09, 08:24</span>
+                            </div>
+                            <div class="notifications-modal__message">
+                              <h4>New user added</h4>
+                              <p>Qorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+                              <span>2025-11-09, 08:24</span>
+                            </div>
+                            <div class="notifications-modal__message">
+                              <h4>AI assistance errors</h4>
+                              <p>Qorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+                              <span>2025-11-09, 08:24</span>
+                            </div>
+                          </div>
+                          <div class="notifications-modal__more">
+                            <button @click="$emit('open'); onLearnMore()">Learn more<svg width="11" height="11" viewBox="0 0 11 11" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2.77273 0.636657C2.77273 0.636657 9.0803 0.143266 9.96857 1.03148C10.8568 1.9197 10.3633 8.22727 10.3633 8.22727M9.59094 1.40909L0.5 10.5" stroke="#110E12" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                     <button class="actions__profile"></button>
                     <button class="burger-menu" @click="$emit('toggleSidebar')">
                       <span></span>
@@ -147,11 +212,10 @@ const toggleModal = () => {
           </div>
           <form class="chat__form">
             <input type="text" placeholder="Write your text" class="chat__input">
-            <button class="chat__button">Send<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <path d="M9.935 3.9917C13.9136 2.63538 15.9028 1.95722 16.9728 3.02718C18.0427 4.09714 17.3646 6.08643 16.0083 10.065L15.0847 12.7743C14.0431 15.8298 13.5222 17.3576 12.6637 17.484C12.4329 17.518 12.194 17.4976 11.9656 17.4243C11.1162 17.1516 10.6672 15.5408 9.76925 12.3192C9.57008 11.6046 9.4705 11.2473 9.24366 10.9743C9.17783 10.8952 9.10483 10.8222 9.02566 10.7563C8.75275 10.5295 8.39541 10.4299 7.68087 10.2308C4.45926 9.33275 2.84845 8.88375 2.57575 8.03439C2.50243 7.80603 2.48197 7.56711 2.51596 7.33629C2.6424 6.47777 4.17016 5.95695 7.22566 4.91532L9.935 3.9917Z" stroke="white" stroke-width="1.5"/>
-  </svg></button>
+            <button class="chat__button">Send<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9.935 3.9917C13.9136 2.63538 15.9028 1.95722 16.9728 3.02718C18.0427 4.09714 17.3646 6.08643 16.0083 10.065L15.0847 12.7743C14.0431 15.8298 13.5222 17.3576 12.6637 17.484C12.4329 17.518 12.194 17.4976 11.9656 17.4243C11.1162 17.1516 10.6672 15.5408 9.76925 12.3192C9.57008 11.6046 9.4705 11.2473 9.24366 10.9743C9.17783 10.8952 9.10483 10.8222 9.02566 10.7563C8.75275 10.5295 8.39541 10.4299 7.68087 10.2308C4.45926 9.33275 2.84845 8.88375 2.57575 8.03439C2.50243 7.80603 2.48197 7.56711 2.51596 7.33629C2.6424 6.47777 4.17016 5.95695 7.22566 4.91532L9.935 3.9917Z" stroke="white" stroke-width="1.5"/></svg></button>
           </form>
         </div>
       </div>
     </div>
+    <div class="overlay" @click="onOverlayClick" v-if="isNotificationsOpen"></div>
 </template>

@@ -11,10 +11,6 @@ const props = defineProps({
 const isOpen = ref(false);
 
 
-const onOverlayClick = () => {
-  isChatOpen.value = false
-}
-
 function toggleOpen() {
   isOpen.value = !isOpen.value;
 }

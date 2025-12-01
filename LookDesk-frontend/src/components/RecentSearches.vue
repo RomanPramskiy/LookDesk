@@ -1,13 +1,188 @@
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from "vue";
+import { ref, onMounted, onBeforeUnmount, computed } from "vue";
 import RecentItem from './RecentItem.vue';
 import avatar1 from "../assets/images/avatar-searches-1.svg"
 
+const currentYear = ref(2025);
+const currentMonth = ref(5);
 
+const minYear = 2020;
+const maxYear = 2025;
+
+const startDate = ref(null);
+const endDate = ref(null);
 const isAllModalOpen = ref(false);
 const isAiModalOpen = ref(false);
 const isChatOpen = ref(false);
 const activeModal = ref(null);
+
+const isExportOpen = ref(false);
+
+const toggleExport = () => {
+  isExportOpen.value = !isExportOpen.value
+}
+const closeOnOutside = (e) => {
+  if (!e.target.closest('.export') && isExportOpen.value) {
+    isExportOpen.value = false
+  }
+}
+
+window.addEventListener('click', closeOnOutside)
+
+
+
+
+
+
+
+
+const daysInMonth = (year, month) => new Date(year, month + 1, 0).getDate();
+
+function normalizeDate(date) {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+}
+
+const calendarDays = computed(() => {
+  const firstDay = new Date(currentYear.value, currentMonth.value, 1).getDay();
+  const offset = (firstDay + 6) % 7;
+
+  const days = [];
+
+  const prevMonth = currentMonth.value === 0 ? 11 : currentMonth.value - 1;
+  const prevMonthYear =
+    currentMonth.value === 0 ? currentYear.value - 1 : currentYear.value;
+
+  const prevMonthDays = daysInMonth(prevMonthYear, prevMonth);
+
+  for (let i = offset - 1; i >= 0; i--) {
+    days.push({
+      day: prevMonthDays - i,
+      date: new Date(prevMonthYear, prevMonth, prevMonthDays - i),
+      class: "prev-month",
+    });
+  }
+
+  const totalDays = daysInMonth(currentYear.value, currentMonth.value);
+
+  for (let i = 1; i <= totalDays; i++) {
+    const date = new Date(currentYear.value, currentMonth.value, i);
+    days.push({
+      day: i,
+      date,
+      class: getDayClass(date),
+    });
+  }
+
+  const nextMonth = currentMonth.value === 11 ? 0 : currentMonth.value + 1;
+  const nextMonthYear =
+    currentMonth.value === 11 ? currentYear.value + 1 : currentYear.value;
+
+  let nextDay = 1;
+  while (days.length < 42) {
+    const date = new Date(nextMonthYear, nextMonth, nextDay);
+    days.push({
+      day: nextDay,
+      date,
+      class: "next-month",
+    });
+    nextDay++;
+  }
+
+  const weeks = Math.ceil(days.length / 7);
+
+  const lastWeek = days.slice((weeks - 1) * 7, weeks * 7);
+
+  const hasCurrentMonth = lastWeek.some(d => d.class !== "next-month");
+
+  if (!hasCurrentMonth) {
+    days.splice(-7);
+  }
+
+  return days;
+});
+
+function getDayClass(date) {
+  if (!startDate.value) return "";
+
+  const t = normalizeDate(date).getTime();
+  const a = startDate.value ? normalizeDate(startDate.value).getTime() : null;
+  const b = endDate.value ? normalizeDate(endDate.value).getTime() : null;
+
+  if (a && !b) {
+    return t === a ? "selected start" : "";
+  }
+
+  if (t === a) return "selected start";
+  if (t === b) return "selected end";
+  if (b && t > a && t < b) return "selected";
+
+  return "";
+}
+
+function selectDay(dayObj) {
+  if (!dayObj.date) return;
+
+  const date = normalizeDate(dayObj.date);
+
+  if (!startDate.value || (startDate.value && endDate.value)) {
+    startDate.value = date;
+    endDate.value = null;
+    return;
+  }
+
+  if (date < startDate.value) {
+    endDate.value = startDate.value;
+    startDate.value = date;
+  } else {
+    endDate.value = date;
+  }
+}
+
+function nextMonth() {
+  if (currentYear.value === maxYear && currentMonth.value === 11) return;
+
+  if (currentMonth.value === 11) {
+    currentMonth.value = 0;
+    currentYear.value++;
+  } else {
+    currentMonth.value++;
+  }
+}
+
+function prevMonth() {
+  if (currentYear.value === minYear && currentMonth.value === 0) return;
+
+  if (currentMonth.value === 0) {
+    currentMonth.value = 11;
+    currentYear.value--;
+  } else {
+    currentMonth.value--;
+  }
+}
+
+function clearDates() {
+  startDate.value = null;
+  endDate.value = null;
+}
+
+
+function nextYear() {
+  if (currentYear.value >= maxYear) return;
+  currentYear.value++;
+}
+
+function prevYear() {
+  if (currentYear.value <= minYear) return;
+  currentYear.value--;
+}
+
+
+
+
+
+
+
+
 
 const toggleAllModal = () => {
   isAllModalOpen.value = !isAllModalOpen.value;
@@ -101,6 +276,22 @@ const emit = defineEmits(["open"]);
 function openAiChat() {
   emit("open");
 }
+
+
+const displayedRange = computed(() => {
+  if (!startDate.value) return "Select date";
+
+  const options = { day: "numeric", month: "short", year: "numeric" };
+
+  const start = startDate.value.toLocaleDateString("en-US", options);
+
+  if (!endDate.value) return start;
+
+  const end = endDate.value.toLocaleDateString("en-US", options);
+
+  return `${start} - ${end}`;
+});
+
 
 const items = [
   {
@@ -220,30 +411,32 @@ const items = [
           </div>
           
           <div class="calendar">
-                      <button @click="toggleCalendar">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M9.16675 10.8334H13.3334H9.16675ZM6.66675 10.8334H6.67423H6.66675ZM10.8334 14.1667H6.66675H10.8334ZM13.3334 14.1667H13.3259H13.3334Z" fill="#110E12"/>
-            <path d="M9.16675 10.8334H13.3334M6.66675 10.8334H6.67423M10.8334 14.1667H6.66675M13.3334 14.1667H13.3259" stroke="#110E12" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M15 1.66664V3.33331V1.66664ZM5 1.66664V3.33331V1.66664Z" fill="#110E12"/>
-            <path d="M15 1.66664V3.33331M5 1.66664V3.33331" stroke="#110E12" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M2.08325 10.2027C2.08325 6.57162 2.08325 4.75607 3.12669 3.62803C4.17012 2.5 5.84949 2.5 9.20825 2.5H10.7916C14.1503 2.5 15.8298 2.5 16.8732 3.62803C17.9166 4.75607 17.9166 6.57162 17.9166 10.2027V10.6307C17.9166 14.2618 17.9166 16.0773 16.8732 17.2053C15.8298 18.3333 14.1503 18.3333 10.7916 18.3333H9.20825C5.84949 18.3333 4.17012 18.3333 3.12669 17.2053C2.08325 16.0773 2.08325 14.2618 2.08325 10.6307V10.2027Z" stroke="#110E12" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M2.5 6.66664H17.5H2.5Z" fill="#110E12"/>
-            <path d="M2.5 6.66664H17.5" stroke="#110E12" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-              15-24 June 2025
+            <button @click="toggleCalendar">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M9.16675 10.8334H13.3334H9.16675ZM6.66675 10.8334H6.67423H6.66675ZM10.8334 14.1667H6.66675H10.8334ZM13.3334 14.1667H13.3259H13.3334Z" fill="#110E12"/>
+              <path d="M9.16675 10.8334H13.3334M6.66675 10.8334H6.67423M10.8334 14.1667H6.66675M13.3334 14.1667H13.3259" stroke="#110E12" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M15 1.66664V3.33331V1.66664ZM5 1.66664V3.33331V1.66664Z" fill="#110E12"/>
+              <path d="M15 1.66664V3.33331M5 1.66664V3.33331" stroke="#110E12" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M2.08325 10.2027C2.08325 6.57162 2.08325 4.75607 3.12669 3.62803C4.17012 2.5 5.84949 2.5 9.20825 2.5H10.7916C14.1503 2.5 15.8298 2.5 16.8732 3.62803C17.9166 4.75607 17.9166 6.57162 17.9166 10.2027V10.6307C17.9166 14.2618 17.9166 16.0773 16.8732 17.2053C15.8298 18.3333 14.1503 18.3333 10.7916 18.3333H9.20825C5.84949 18.3333 4.17012 18.3333 3.12669 17.2053C2.08325 16.0773 2.08325 14.2618 2.08325 10.6307V10.2027Z" stroke="#110E12" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M2.5 6.66664H17.5H2.5Z" fill="#110E12"/>
+              <path d="M2.5 6.66664H17.5" stroke="#110E12" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              {{ displayedRange }}
             </button>
             <div v-if="activeModal === 'calendar'" class="calendar-widget">
             <div class="calendar-widget__header">
               <div class="calendar-header-group">
-                <button class="calendar-nav prev"><svg width="6" height="8" viewBox="0 0 6 8" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M0.253761 4.58241C-0.0845873 4.32115 -0.0845871 3.67885 0.253761 3.41759L4.55759 0.0943168C4.90074 -0.170652 5.33333 0.154128 5.33333 0.676727L5.33333 7.32327C5.33333 7.84587 4.90074 8.17065 4.5576 7.90568L0.253761 4.58241Z" fill="#110E12"/></svg></button>
-                <span class="calendar-title">2025</span>
-                <button class="calendar-nav next"><svg width="6" height="8" viewBox="0 0 6 8" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5.07949 4.58241C5.41784 4.32115 5.41784 3.67885 5.07949 3.41759L0.775656 0.0943172C0.432507 -0.170651 -8.18821e-05 0.154129 -8.18593e-05 0.676728L-8.15687e-05 7.32327C-8.15459e-05 7.84587 0.432507 8.17065 0.775657 7.90568L5.07949 4.58241Z" fill="#110E12"/></svg></button>
+                <button v-if="currentYear > minYear" @click="prevYear" :disabled="currentYear === minYear" class="calendar-nav prev"><svg width="6" height="8" viewBox="0 0 6 8" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M0.253761 4.58241C-0.0845873 4.32115 -0.0845871 3.67885 0.253761 3.41759L4.55759 0.0943168C4.90074 -0.170652 5.33333 0.154128 5.33333 0.676727L5.33333 7.32327C5.33333 7.84587 4.90074 8.17065 4.5576 7.90568L0.253761 4.58241Z" fill="#110E12"/></svg></button>
+                <span class="calendar-title">
+                  {{ currentYear }}
+                </span>
+                <button v-if="currentYear < maxYear" @click="nextYear" :disabled="currentYear === maxYear" class="calendar-nav next"><svg width="6" height="8" viewBox="0 0 6 8" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5.07949 4.58241C5.41784 4.32115 5.41784 3.67885 5.07949 3.41759L0.775656 0.0943172C0.432507 -0.170651 -8.18821e-05 0.154129 -8.18593e-05 0.676728L-8.15687e-05 7.32327C-8.15459e-05 7.84587 0.432507 8.17065 0.775657 7.90568L5.07949 4.58241Z" fill="#110E12"/></svg></button>
               </div>
               
               <div class="calendar-header-group">
-                <button class="calendar-nav prev"><svg width="6" height="8" viewBox="0 0 6 8" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M0.253761 4.58241C-0.0845873 4.32115 -0.0845871 3.67885 0.253761 3.41759L4.55759 0.0943168C4.90074 -0.170652 5.33333 0.154128 5.33333 0.676727L5.33333 7.32327C5.33333 7.84587 4.90074 8.17065 4.5576 7.90568L0.253761 4.58241Z" fill="#110E12"/></svg></button>
-                <span class="calendar-title">June</span>
-                <button class="calendar-nav next"><svg width="6" height="8" viewBox="0 0 6 8" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5.07949 4.58241C5.41784 4.32115 5.41784 3.67885 5.07949 3.41759L0.775656 0.0943172C0.432507 -0.170651 -8.18821e-05 0.154129 -8.18593e-05 0.676728L-8.15687e-05 7.32327C-8.15459e-05 7.84587 0.432507 8.17065 0.775657 7.90568L5.07949 4.58241Z" fill="#110E12"/></svg></button>
+                <button @click="prevMonth" class="calendar-nav prev"><svg width="6" height="8" viewBox="0 0 6 8" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M0.253761 4.58241C-0.0845873 4.32115 -0.0845871 3.67885 0.253761 3.41759L4.55759 0.0943168C4.90074 -0.170652 5.33333 0.154128 5.33333 0.676727L5.33333 7.32327C5.33333 7.84587 4.90074 8.17065 4.5576 7.90568L0.253761 4.58241Z" fill="#110E12"/></svg></button>
+                <span class="calendar-title">{{ new Date(currentYear, currentMonth).toLocaleString('en', { month: 'long' }) }}</span>
+                <button @click="nextMonth" class="calendar-nav next"><svg width="6" height="8" viewBox="0 0 6 8" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5.07949 4.58241C5.41784 4.32115 5.41784 3.67885 5.07949 3.41759L0.775656 0.0943172C0.432507 -0.170651 -8.18821e-05 0.154129 -8.18593e-05 0.676728L-8.15687e-05 7.32327C-8.15459e-05 7.84587 0.432507 8.17065 0.775657 7.90568L5.07949 4.58241Z" fill="#110E12"/></svg></button>
               </div>
             </div>
 
@@ -251,24 +444,20 @@ const items = [
               <span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span><span>Su</span>
             </div>
             
-            <div class="calendar-widget__grid">
-              <span class="day prev-month">30</span>
-              <span class="day prev-month">31</span>
-              <span class="day">1</span><span class="day">2</span><span class="day">3</span><span class="day">4</span><span class="day">5</span>
-              <span class="day">6</span><span class="day">7</span><span class="day">8</span><span class="day">9</span><span class="day">10</span><span class="day">11</span><span class="day">12</span>
-              <span class="day">13</span><span class="day">14</span>
-              <span class="day selected start">15</span>
-              <span class="day selected">16</span><span class="day selected">17</span><span class="day selected">18</span><span class="day selected">19</span>
-              <span class="day selected">20</span><span class="day selected">21</span><span class="day selected">22</span><span class="day selected">23</span>
-              <span class="day selected end">24</span>
-              
-              <span class="day">25</span><span class="day">26</span>
-              <span class="day">27</span><span class="day">28</span><span class="day">29</span><span class="day">30</span>
-              <span class="day next-month">1</span><span class="day next-month">2</span><span class="day next-month">3</span>
-            </div>
+              <div class="calendar-widget__grid">
+                <span
+                  v-for="day in calendarDays"
+                  :key="day.date"
+                  class="day"
+                  :class="day.class"
+                  @click="selectDay(day)"
+                >
+                  {{ day.day }}
+                </span>
+              </div>
 
             <div class="calendar-widget__footer">
-               <button class="btn-clear" @click="closeModals">Clear all</button>
+               <button class="btn-clear" @click="clearDates">Clear all</button>
                <button class="btn-apply" @click="closeModals">Apply</button>
             </div>
          
@@ -276,14 +465,25 @@ const items = [
           </div>
         </div>
   
-        <button class="recent__export">
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M10.0001 12.0833V3.75M10.0001 12.0833C9.41658 12.0833 8.32636 10.4214 7.91675 10M10.0001 12.0833C10.5836 12.0833 11.6738 10.4214 12.0834 10" stroke="#110E12" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M16.6666 13.75C16.6666 15.8183 16.2349 16.25 14.1666 16.25H5.83325C3.76492 16.25 3.33325 15.8183 3.33325 13.75" stroke="#110E12" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-  
-          Export PDF
-        </button>
+        <div class="export">
+          <button class="recent__export" @click="toggleExport">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M10.0001 12.0833V3.75M10.0001 12.0833C9.41658 12.0833 8.32636 10.4214 7.91675 10M10.0001 12.0833C10.5836 12.0833 11.6738 10.4214 12.0834 10" stroke="#110E12" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M16.6666 13.75C16.6666 15.8183 16.2349 16.25 14.1666 16.25H5.83325C3.76492 16.25 3.33325 15.8183 3.33325 13.75" stroke="#110E12" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Export PDF
+          </button>
+          <div class="export-modal" v-if="isExportOpen">
+            <div class="export-modal__inner">
+              <button><svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8.00016 9.66667V3M8.00016 9.66667C7.53336 9.66667 6.66118 8.33713 6.3335 8M8.00016 9.66667C8.46696 9.66667 9.33916 8.33713 9.66683 8" stroke="#110E12" stroke-linecap="round" stroke-linejoin="round"/><path d="M13.3332 11C13.3332 12.6547 12.9878 13 11.3332 13H4.6665C3.01184 13 2.6665 12.6547 2.6665 11" stroke="#110E12" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              PDF
+              </button>
+              <button><svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8.00016 9.66667V3M8.00016 9.66667C7.53336 9.66667 6.66118 8.33713 6.3335 8M8.00016 9.66667C8.46696 9.66667 9.33916 8.33713 9.66683 8" stroke="#110E12" stroke-linecap="round" stroke-linejoin="round"/><path d="M13.3332 11C13.3332 12.6547 12.9878 13 11.3332 13H4.6665C3.01184 13 2.6665 12.6547 2.6665 11" stroke="#110E12" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              XLS
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
   
       <div class="search-bar-row">

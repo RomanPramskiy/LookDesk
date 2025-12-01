@@ -9,19 +9,28 @@ import RecentSearches from "../components/RecentSearches.vue";
 import TeamMembers from "../components/TeamMembers.vue";
 import BillingSection from "../components/BillingSection.vue";
 import ChatAi from '../components/ChatAi.vue';
+import NotificationsPopUp from '../components/NotificationsPopUp.vue';
 
 const sidebarOpen = ref(false)
 const chatOpen = ref(false)
+const NotificationsPopUpOpen = ref(false)
 
 function onRecentOpen() {
-  console.log('HomeView: received open -> set chatOpen true'); // debug
   chatOpen.value = true
+}
+
+function onNotificationsOpen() {
+ NotificationsPopUpOpen.value = true
+}
+
+const onLearnMore = () => {
+  NotificationsPopUpOpen.value = false
 }
 </script>
 
 <template>
   <div class="wrapper">
-    <Header @toggleSidebar="sidebarOpen = !sidebarOpen"></Header>
+    <Header @toggleSidebar="sidebarOpen = !sidebarOpen" @open="onNotificationsOpen"></Header>
     <main class="main">
       <div class="container">
         <div class="main-layout">
@@ -31,6 +40,7 @@ function onRecentOpen() {
                 <Hero></Hero>
                 <DashboardStats class="no-display-1440" />
                 <ChatAi :open="chatOpen" @close="chatOpen = false"></ChatAi>
+                <NotificationsPopUp :open="NotificationsPopUpOpen" @close="NotificationsPopUpOpen = false" v-if="NotificationsPopUpOpen" @open="onLearnMore"></NotificationsPopUp>
               </div>
               <div class="main-info-mobile">
                 <DashboardStats />
